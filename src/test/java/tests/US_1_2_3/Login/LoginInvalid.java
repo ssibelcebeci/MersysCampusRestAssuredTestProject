@@ -1,17 +1,18 @@
-package tests;
+package tests.US_1_2_3.Login;
 
 import io.restassured.response.Response;
 import org.testng.annotations.Test;
+import tests.BaseTest;
 
 import static io.restassured.RestAssured.given;
 
-public class Login extends BaseTest{
+public class LoginInvalid extends BaseTest {
 
     @Test
-    public void login(){
+    public void loginNegative(){
         String createBody= """
                 {
-                  "username": "TS_Staj",
+                  "username": "TS",
                   "password": "TS_Staj2026",
                   "rememberMe": true
                 }
@@ -25,10 +26,9 @@ public class Login extends BaseTest{
                         .post("auth/login")
                         .then()
                         .log().all()
-                        .statusCode(200)
+                        .statusCode(401)
                         .extract().response();
 
         System.out.println(response.body());
-
     }
 }
