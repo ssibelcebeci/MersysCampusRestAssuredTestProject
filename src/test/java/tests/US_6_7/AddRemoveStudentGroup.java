@@ -1,4 +1,4 @@
-package tests.US_06_07.Students;
+package tests.US_6_7;
 
 import io.restassured.response.Response;
 import org.testng.annotations.Test;
