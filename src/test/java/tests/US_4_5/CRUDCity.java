@@ -4,6 +4,7 @@ import io.restassured.response.Response;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 import tests.BaseTest;
+
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
@@ -36,18 +37,19 @@ public class CRUDCity extends BaseTest {
 
         String token = response.path("access_token");
     }
+
     @Test(priority = 2)
     public void createCity() {
 
-String createBody= """
-        {
-            "name": "Akhisar",
-            "country": {
-                "id": "5cad7e76bc32694aad5298ce"
-            },
-            "state": null,
-            "translateName": []
-        }
+        String createBody = """
+                {
+                    "name": "Akhisar",
+                    "country": {
+                        "id": "5cad7e76bc32694aad5298ce"
+                    },
+                    "state": null,
+                    "translateName": []
+                }
                 """;
 
         Response response =
@@ -88,7 +90,7 @@ String createBody= """
                 .body(updateBody)
                 .log().all()
                 .when()
-                .put("/school-service/api/cities" )
+                .put("/school-service/api/cities")
                 .then()
                 .log().all()
                 .statusCode(200);
@@ -102,5 +104,4 @@ String createBody= """
                 .then()
                 .statusCode(200);
     }
-
 }

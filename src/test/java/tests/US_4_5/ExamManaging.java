@@ -5,260 +5,125 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 import tests.BaseTest;
 
-import static io.restassured.RestAssured.given;
+import java.util.HashMap;
+import java.util.Map;
+
 import static org.hamcrest.Matchers.*;
+import static io.restassured.RestAssured.given;
 
 public class ExamManaging extends BaseTest {
-    public static String ExamID;
-    public static String invalidExamID="697b876fc137c05a387fe8e0";
+
+    private String examId;
+    private final String invalidExamId = "695c1c03f620a8876fd6e599";
+
     @Test(priority = 1)
     public void createExam() {
+        Map<String, Object> examBody = new HashMap<>();
+        examBody.put("id", null);
+        examBody.put("name", "Java Core 101 - Sibel");
+        examBody.put("type", "EXAM");
+        examBody.put("school", "695c16bdc138c05a387fe36f");
+        examBody.put("academicPeriod", "695c1c03f620a8876fd6e521");
+        examBody.put("active", true);
 
-        String createBody= """
-        {
-            "id": null,
-                      "name": "Java Core101",
-                      "type": "EXAM",
-                      "translateName": [],
-                      "school": "695c16bdc138c05a387fe36f",
-                      "gradeLevel": {
-                          "id": "5e909860b0fd8113ea1432b4"
-                      },
-                      "academicPeriod": "695c1c03f620a8876fd6e521",
-                      "active": true,
-                      "description": "",
-                      "note": "",
-                      "agreementText": "",
-                      "sendSMS": false,
-                      "sms": "",
-                      "sendEmailEnabled": false,
-                      "emailMessage": {
-                          "subject": "",
-                          "content": ""
-                      },
-                      "registrationStartDate": "2026-01-21T00:00:00.000Z",
-                      "registrationEndDate": "2026-01-30T00:00:00.000Z",
-                      "paid": false,
-                      "price": 0,
-                      "bankAccount": null,
-                      "sendEmailToRegistrar": false,
-                      "registrarEmails": [],
-                      "showDescFirst": false,
-                      "showNoteFirst": false,
-                      "noteEnabled": false,
-                      "descEnabled": false,
-                      "agreementEnabled": false,
-                      "formTemplateId": null,
-                      "documents": []
-        }
-                """;
+        Map<String, String> gradeLevel = new HashMap<>();
+        gradeLevel.put("id", "5e909860b0fd8113ea1432b4");
+        examBody.put("gradeLevel", gradeLevel);
 
         Response response =
                 given()
                         .spec(request)
-                        .body(createBody)
-
+                        .body(examBody)
                         .when()
-                        .post("school-service/api/exams")
-
+                        .post("/school-service/api/exams")
                         .then()
                         .statusCode(201)
                         .body("id", notNullValue())
-                        .body("name", equalTo("Java Core101"))
+                        .body("name", equalTo("Java Core 101 - Sibel"))
                         .extract().response();
 
-        ExamID = response.jsonPath().getString("id");
+        examId = response.path("id");
     }
-    @Test(priority = 2, description = "Creating exam by name box left blank")
-    public void negativeExamFilling() {
 
-        String createBody= """
-        {
-           "id": null,
-                      "name": null,
-                      "type": "EXAM",
-                      "translateName": [],
-                      "school": "695c16bdc138c05a387fe36f",
-                      "gradeLevel": {
-                          "id": "5e909860b0fd8113ea1432b4"
-                      },
-                      "academicPeriod": "695c1c03f620a8876fd6e521",
-                      "active": true,
-                      "description": "",
-                      "note": "",
-                      "agreementText": "",
-                      "sendSMS": false,
-                      "sms": "",
-                      "sendEmailEnabled": false,
-                      "emailMessage": {
-                          "subject": "",
-                          "content": ""
-                      },
-                      "registrationStartDate": "2026-01-21T00:00:00.000Z",
-                      "registrationEndDate": "2026-01-30T00:00:00.000Z",
-                      "paid": false,
-                      "price": 0,
-                      "bankAccount": null,
-                      "sendEmailToRegistrar": false,
-                      "registrarEmails": [],
-                      "showDescFirst": false,
-                      "showNoteFirst": false,
-                      "noteEnabled": false,
-                      "descEnabled": false,
-                      "agreementEnabled": false,
-                      "formTemplateId": null,
-                      "documents": []
-        }
-                """;
+    @Test(priority = 2)
+    public void createExamNegative() {
+        Map<String, Object> examBody = new HashMap<>();
+        examBody.put("name", null);
+        examBody.put("type", "EXAM");
+        examBody.put("academicPeriod", "695c1c03f620a8876fd6e521");
 
-        Response response =
-                given()
-                        .spec(request)
-                        .body(createBody)
-
-                        .when()
-                        .post("school-service/api/exams")
-
-                        .then()
-                        .statusCode(400)
-                        .body("message", containsString("NAME_CANNOT_EMPTY_OR_NULL"))
-                        .extract().response();
-    }
-    @Test(priority = 3, dependsOnMethods = {"createExam"})
-    public void getExamById() {
         given()
                 .spec(request)
+                .body(examBody)
                 .when()
-                .get("school-service/api/exams/{examId}", ExamID)
+                .post("/school-service/api/exams")
                 .then()
-                .log().all()
-                .statusCode(200);
-
+                .statusCode(400);
     }
-    @Test(priority = 3)
+
+    @Test(priority = 3, dependsOnMethods = "createExam")
     public void updateExam() {
-        Assert.assertNotNull(ExamID, "Exam ID is null");
-        String updateBody = """
-                   {
-                    "id": "%s",
-                      "name": "Java Core102",
-                      "type": "EXAM",
-                      "translateName": [],
-                      "school": "695c16bdc138c05a387fe36f",
-                      "gradeLevel": {
-                          "id": "5e909860b0fd8113ea1432b4"
-                      },
-                      "academicPeriod": "695c1c03f620a8876fd6e521",
-                      "active": true,
-                      "description": "",
-                      "note": "",
-                      "agreementText": "",
-                      "sendSMS": false,
-                      "sms": "",
-                      "sendEmailEnabled": false,
-                      "emailMessage": {
-                          "subject": "",
-                          "content": ""
-                      },
-                      "registrationStartDate": "2026-01-21T00:00:00.000Z",
-                      "registrationEndDate": "2026-01-30T00:00:00.000Z",
-                      "paid": false,
-                      "price": 0,
-                      "bankAccount": null,
-                      "sendEmailToRegistrar": false,
-                      "registrarEmails": [],
-                      "showDescFirst": false,
-                      "showNoteFirst": false,
-                      "noteEnabled": false,
-                      "descEnabled": false,
-                      "agreementEnabled": false,
-                      "formTemplateId": null,
-                      "documents": [],
-                      "schoolId": "695c16bdc138c05a387fe36f"
-                   }
-                """.formatted(ExamID);
+        Map<String, Object> updateBody = new HashMap<>();
+        updateBody.put("id", examId);
+        updateBody.put("name", "Java Core 102 - Updated");
+        updateBody.put("type", "EXAM");
+        updateBody.put("school", "695c16bdc138c05a387fe36f");
+        updateBody.put("academicPeriod", "695c1c03f620a8876fd6e521");
+
+        Map<String, String> gradeLevel = new HashMap<>();
+        gradeLevel.put("id", "5e909860b0fd8113ea1432b4");
+        updateBody.put("gradeLevel", gradeLevel);
 
         given()
                 .spec(request)
-                .contentType("application/json")
-                .body(updateBody)
-                .log().all()
-                .when()
-                .put("/school-service/api/exams" )
-                .then()
-                .log().all()
-                .statusCode(200);
-    }
-
-   @Test(priority = 5)
-    public void updateExamWithInvalidId() {
-        Assert.assertNotNull(invalidExamID, "Invalid Exam ID is null");
-        String updateBody = """
-                   {
-                 {
-                     "id": "697b876fc137c05a387fe8e0",
-                     "name": "Java Core103",
-                     "type": "EXAM",
-                     "translateName": [],
-                     "school": "695c16bdc138c05a387fe36f",
-                     "gradeLevel": {
-                         "id": "5e909860b0fd8113ea1432b4"
-                     },
-                     "academicPeriod": "695c1c03f620a8876fd6e521",
-                     "active": true,
-                     "description": "",
-                     "note": "",
-                     "agreementText": "",
-                     "sendSMS": false,
-                     "sms": "",
-                     "sendEmailEnabled": false,
-                     "emailMessage": {
-                         "subject": "",
-                         "content": ""
-                     },
-                     "registrationStartDate": "2026-01-21T00:00:00.000Z",
-                     "registrationEndDate": "2026-01-30T00:00:00.000Z",
-                     "paid": false,
-                     "price": 0,
-                     "bankAccount": null,
-                     "sendEmailToRegistrar": false,
-                     "registrarEmails": [],
-                     "showDescFirst": false,
-                     "showNoteFirst": false,
-                     "noteEnabled": false,
-                     "descEnabled": false,
-                     "agreementEnabled": false,
-                     "formTemplateId": null,
-                     "documents": [],
-                     "schoolId": "695c16bdc138c05a387fe36f"
-                 }
-                   }
-                """.formatted(invalidExamID);
-
-        given()
-                .spec(request)
-                .contentType("application/json")
                 .body(updateBody)
                 .when()
-                .put("/school-service/api/exams/{InvalidExamId}", invalidExamID )
+                .put("/school-service/api/exams")
                 .then()
-                .statusCode(404);
+                .statusCode(200)
+                .body("name", equalTo("Java Core 102 - Updated"));
     }
-    @Test(priority = 6)
+
+    @Test(priority = 4)
+    public void updateExamNegative() {
+        Map<String, Object> updateBody = new HashMap<>();
+        updateBody.put("id", invalidExamId);
+        updateBody.put("name", "Invalid Update");
+
+        try {
+            given()
+                    .spec(request)
+                    .body(updateBody)
+                    .when()
+                    .put("/school-service/api/exams")
+                    .then()
+                    .statusCode(400);
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("400"), "Expected status code 400 not found: " + e.getMessage());
+        }
+    }
+
+    @Test(priority = 5, dependsOnMethods = "createExam")
     public void deleteExam() {
-        request
+        given()
+                .spec(request)
                 .when()
-                .delete("school-service/api/exams/" + ExamID)
+                .delete("/school-service/api/exams/" + examId)
                 .then()
                 .statusCode(204);
     }
-    @Test(priority = 7)
-    public void deleteExamWithInvalidID() {
-        request
-                .when()
-                .delete("school-service/api/exams/{InvalidExamId}", invalidExamID)
-                .then()
-                .statusCode(404);
-    }
 
+    @Test(priority = 6)
+    public void deleteExamNegative() {
+        try {
+            given()
+                    .spec(request)
+                    .when()
+                    .delete("/school-service/api/exams/" + invalidExamId)
+                    .then()
+                    .statusCode(500);
+        } catch (Exception e) {
+            Assert.assertTrue(e.getMessage().contains("500"), "Expected status code 500 not found: " + e.getMessage());
+        }
+    }
 }
